@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5344146427557749702}
   - component: {fileID: 3529847387181962731}
+  - component: {fileID: 6959766377225078044}
   m_Layer: 0
   m_Name: MapGenerator
   m_TagString: Untagged
@@ -44,10 +45,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08361e2c929720a4d965ce7b47e2c7b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 60
-  height: 80
+  width: 80
+  height: 60
   mapSmoothIter: 5
   mapSmoothSensitivity: 4
   seed: Robyn
   randomSeed: 1
   randomFillPercent: 45
+--- !u!114 &6959766377225078044
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8279899549805401319}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93f0133afa796794e94a2f285f545828, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
