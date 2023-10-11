@@ -43,8 +43,26 @@ public class MapGen : MonoBehaviour
             SmoothMap();
         }
 
+        int borderSize = 5;
+        int[,] borderedMap = new int[width + borderSize * 2, height + borderSize * 2];
+
+        for (int i = 0; i < borderedMap.GetLength(0); i++)
+        {
+            for (int j = 0; j < borderedMap.GetLength(1); j++)
+            {
+                if(i >= borderSize && i < width + borderSize && j >= borderSize && j < height + borderSize)
+                {
+                    borderedMap[i, j] = map[i - borderSize, j - borderSize];
+                }
+                else
+                {
+                    borderedMap[i, j] = 1;
+                }
+            }
+        }
+
         MeshGen meshGen = GetComponent<MeshGen>();
-        meshGen.GenerateMesh(map, 1);
+        meshGen.GenerateMesh(borderedMap, 1);
 
     }
 
