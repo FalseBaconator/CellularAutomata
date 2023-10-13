@@ -43,6 +43,8 @@ public class MapGen : MonoBehaviour
             SmoothMap();
         }
 
+        ProcessMap();
+
         int borderSize = 5;
         int[,] borderedMap = new int[width + borderSize * 2, height + borderSize * 2];
 
@@ -119,7 +121,7 @@ public class MapGen : MonoBehaviour
         {
             for (int j = y-1; j <= y + 1; j++)
             {
-                if(i >= 0 && i < width && j >= 0 && j < height)
+                if(IsInMapRange(i, j))
                 {
                     if (i != x || j != y)
                     {
@@ -134,6 +136,108 @@ public class MapGen : MonoBehaviour
         }
 
         return count;
+    }
+
+    void ProcessMap()
+    {
+        List<List<Coord>> wallRegions = GetRegions(1);
+        int wallThresholdSize = 50;
+        foreach (List<Coord> wallRegion in wallRegions)
+        {
+            if(wallRegion.Count < wallThresholdSize)
+            {
+                foreach (Coord tile in wallRegion)
+                {
+                    map[tile.tileX, tile.tileY] = 0;
+                }
+            }
+        }
+
+        List<List<Coord>> roomRegions = GetRegions(0);
+        int roomThresholdSize = 50;
+        foreach (List<Coord> roomRegion in roomRegions)
+        {
+            if (roomRegion.Count < roomThresholdSize)
+            {
+                foreach (Coord tile in roomRegion)
+                {
+                    map[tile.tileX, tile.tileY] = 1;
+                }
+            }
+        }
+    }
+
+    List<List<Coord>> GetRegions(int tileType)
+    {
+        List<List<Coord>> regions = new List<List<Coord>>();
+        int[,] mapFlags = new int[width, height];
+
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                if (mapFlags[i, j] == 0 && map[i, j] == tileType)
+                {
+                    List<Coord> newRegion = GetRegionTiles(i, j);
+                    regions.Add(newRegion);
+
+                    foreach (Coord tile in newRegion)
+                    {
+                        mapFlags[tile.tileX, tile.tileY] = 1;
+                    }
+                }
+            }
+        }
+        return regions;
+    }
+
+    List<Coord> GetRegionTiles(int startX, int startY)
+    {
+        List<Coord> tiles = new List<Coord>();
+        int[,] mapFlags = new int[width, height];
+        int tileType = map[startX, startY];
+
+        Queue<Coord> queue = new Queue<Coord>();
+
+        queue.Enqueue(new Coord(startX, startY));
+        mapFlags[startX, startY] = 1;
+
+        while (queue.Count > 0)
+        {
+            Coord tile = queue.Dequeue();
+            tiles.Add(tile);
+            for (int i = tile.tileX - 1; i <= tile.tileX + 1; i++)
+            {
+                for (int j = tile.tileY - 1; j <= tile.tileY + 1; j++)
+                {
+                    if (IsInMapRange(i, j) && (i == tile.tileX || j == tile.tileY)){
+                        if (mapFlags[i,j] == 0 && map[i,j] == tileType)
+                        {
+                            mapFlags[i, j] = 1;
+                            queue.Enqueue(new Coord(i, j));
+                        }
+                    }
+                }
+            }
+        }
+        return tiles;
+    }
+
+    bool IsInMapRange(int x, int y)
+    {
+        return x >= 0 && x < width && y >= 0 && y < height;
+    }
+
+    struct Coord
+    {
+        public int tileX;
+        public int tileY;
+
+        public Coord(int x, int y)
+        {
+            tileX = x;
+            tileY = y;
+        }
     }
 
     private void OnDrawGizmos()
