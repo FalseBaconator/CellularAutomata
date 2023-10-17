@@ -155,6 +155,8 @@ public class MapGen : MonoBehaviour
 
         List<List<Coord>> roomRegions = GetRegions(0);
         int roomThresholdSize = 50;
+        List<Room> survivingRooms = new List<Room>();
+
         foreach (List<Coord> roomRegion in roomRegions)
         {
             if (roomRegion.Count < roomThresholdSize)
@@ -164,7 +166,118 @@ public class MapGen : MonoBehaviour
                     map[tile.tileX, tile.tileY] = 1;
                 }
             }
+            else
+            {
+                survivingRooms.Add(new Room(roomRegion, map));
+            }
         }
+
+        survivingRooms.Sort();
+        survivingRooms[0].isMain = true;
+        survivingRooms[0].isAccessibleFromMain = true;
+
+        ConnectClosestRooms(survivingRooms);
+
+    }
+
+    void ConnectClosestRooms(List<Room> allRooms, bool forceAccessibilityFromMain = false)
+    {
+
+        List<Room> roomListA = new List<Room>();
+        List<Room> roomListB = new List<Room>();
+
+        if (forceAccessibilityFromMain)
+        {
+            foreach(Room room in allRooms)
+            {
+                if(room.isAccessibleFromMain)
+                {
+                    roomListB.Add(room);
+                }
+                else
+                {
+                    roomListA.Add(room);
+                }
+            }
+        }
+        else
+        {
+            roomListA = allRooms;
+            roomListB = allRooms;
+        }
+
+        int bestDistance = 0;
+        Coord bestTileA = new Coord();
+        Coord bestTileB = new Coord();
+        Room bestRoomA = new Room();
+        Room bestRoomB = new Room();
+        bool possibleConnection = false;
+
+        foreach (Room roomA in roomListA)
+        {
+            if (!forceAccessibilityFromMain)
+            {
+                possibleConnection = false;
+                if(roomA.connectedRooms.Count > 0)
+                {
+                    continue;
+                }
+            }
+            foreach (Room roomB in roomListB)
+            {
+                if(roomA == roomB || roomA.IsConnected(roomB))
+                {
+                    continue;
+                }
+                for (int i = 0; i < roomA.edges.Count; i++)
+                {
+                    for (int j = 0; j < roomB.edges.Count; j++)
+                    {
+                        Coord tileA = roomA.edges[i];
+                        Coord tileB = roomB.edges[j];
+                        int distBetweenRooms = (int)(MathF.Pow(tileA.tileX - tileB.tileX, 2) + MathF.Pow(tileA.tileY - tileB.tileY, 2));
+
+                        if(distBetweenRooms < bestDistance || !possibleConnection)
+                        {
+                            bestDistance = distBetweenRooms;
+                            possibleConnection = true;
+                            bestTileA = tileA;
+                            bestTileB = tileB;
+                            bestRoomA = roomA;
+                            bestRoomB = roomB;
+                        }
+                    }
+                }
+            }
+
+            if (possibleConnection && !forceAccessibilityFromMain)
+            {
+                CreatePassage(bestRoomA, bestRoomB, bestTileA, bestTileB);
+            }
+
+        }
+
+        if (forceAccessibilityFromMain && possibleConnection)
+        {
+            CreatePassage(bestRoomA, bestRoomB, bestTileA, bestTileB);
+            ConnectClosestRooms(allRooms, true);
+        }
+
+        if (!forceAccessibilityFromMain)
+        {
+            ConnectClosestRooms(allRooms, true);
+        }
+    }
+
+    void CreatePassage(Room a, Room b, Coord tileA, Coord tileB)
+    {
+        Room.ConnectRooms(a, b);
+        Debug.DrawLine(CoordToWorld(tileA), CoordToWorld(tileB), Color.green, 100);
+    }
+
+    Vector3 CoordToWorld(Coord tile)
+    {
+        return new Vector3(-width / 2 + .5f + tile.tileX, 2, -height / 2 + .5f + tile.tileY);
     }
 
     List<List<Coord>> GetRegions(int tileType)
@@ -240,22 +353,77 @@ public class MapGen : MonoBehaviour
         }
     }
 
-    private void OnDrawGizmos()
+    class Room : IComparable<Room>
     {
-        /*
-        if(map != null)
+        public List<Coord> tiles;
+        public List<Coord> edges;
+        public List<Room> connectedRooms;
+        public int roomSize;
+        public bool isAccessibleFromMain;
+        public bool isMain;
+
+        public Room() { }
+
+        public Room(List<Coord> roomTiles, int[,] map)
         {
-            for (int i = 0; i < width; i++)
+            tiles = roomTiles;
+            roomSize = tiles.Count;
+            connectedRooms = new List<Room>();
+
+            edges = new List<Coord>();
+            foreach (Coord tile in tiles)
             {
-                for (int j = 0; j < height; j++)
+                for (int i = tile.tileX - 1; i < tile.tileX + 1; i++)
                 {
-                    Gizmos.color = (map[i,j] == 1)?Color.black : Color.white;
-                    Vector3 pos = new Vector3(-width / 2 + i + .5f, 0, -height / 2 + j + .5f);
-                    Gizmos.DrawCube(pos, Vector3.one);
+                    for (int j = tile.tileY - 1; j < tile.tileY + 1; j++)
+                    {
+                        if (i == tile.tileX || j == tile.tileY)
+                        {
+                            if (map[i, j] == 1)
+                            {
+                                edges.Add(tile);
+                            }
+                        }
+                    }
                 }
             }
         }
-        */
+
+        public void SetAccessibleFromMain()
+        {
+            if (!isAccessibleFromMain)
+            {
+                isAccessibleFromMain = true;
+                foreach (Room room in connectedRooms)
+                {
+                    room.SetAccessibleFromMain();
+                }
+            }
+        }
+
+        public static void ConnectRooms(Room roomA, Room roomB)
+        {
+            if (roomA.isAccessibleFromMain)
+            {
+                roomB.SetAccessibleFromMain();
+            }else if (roomB.isAccessibleFromMain)
+            {
+                roomA.SetAccessibleFromMain();
+            }
+            roomA.connectedRooms.Add(roomB);
+            roomB.connectedRooms.Add(roomA);
+        }
+
+        public bool IsConnected(Room otherRoom)
+        {
+            return connectedRooms.Contains(otherRoom);
+        }
+
+        public int CompareTo(Room other)
+        {
+            return other.roomSize.CompareTo(roomSize);
+        }
+
     }
 
 }
