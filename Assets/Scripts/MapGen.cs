@@ -274,7 +274,6 @@ public class MapGen : MonoBehaviour
     void CreatePassage(Room a, Room b, Coord tileA, Coord tileB)
     {
         Room.ConnectRooms(a, b);
-        Debug.DrawLine(CoordToWorld(tileA), CoordToWorld(tileB), Color.green, 100);
 
         List<Coord> line = GetLine(tileA, tileB);
         foreach (Coord c in line)
