@@ -5,6 +5,9 @@ using UnityEngine;
 
 public class MapGen : MonoBehaviour
 {
+    public Player player;
+    public Player2D player2D;
+
     public int width;
     public int height;
 
@@ -20,11 +23,15 @@ public class MapGen : MonoBehaviour
 
     public int passageWidth;
 
+    public int squareSize = 1;
+
     int[,] map;
 
 
     private void Start()
     {
+        player = FindObjectOfType<Player>();
+        player2D = FindObjectOfType<Player2D>();
         GenerateMap();
     }
 
@@ -66,8 +73,24 @@ public class MapGen : MonoBehaviour
         }
 
         MeshGen meshGen = GetComponent<MeshGen>();
-        meshGen.GenerateMesh(borderedMap, 1);
+        meshGen.GenerateMesh(borderedMap, squareSize);
 
+        int tempX = 0;
+        int tempZ = 0;
+        System.Random rand = new System.Random();
+        do
+        {
+            tempX = rand.Next(width);
+            tempZ = rand.Next(height);
+        } while (map[tempX, tempZ] == 1);
+        if (meshGen.is2D)
+        {
+            player2D.Spawn(-width / 2 + tempX * squareSize + squareSize / 2, -height / 2 + tempZ * squareSize + squareSize / 2);
+        }
+        else
+        {
+            player.Spawn(-width / 2 + tempX * squareSize + squareSize / 2, -height / 2 + tempZ * squareSize + squareSize / 2);
+        }
     }
 
     void RandomFillMap()

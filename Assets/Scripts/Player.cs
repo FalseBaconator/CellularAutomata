@@ -15,6 +15,11 @@ public class Player : MonoBehaviour
         rb = GetComponent<Rigidbody>();
     }
 
+    public void Spawn(float x, float z)
+    {
+        transform.position = new Vector3(x, -2, z);
+    }
+
     // Update is called once per frame
     void Update()
     {

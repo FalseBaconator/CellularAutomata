@@ -214,6 +214,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08361e2c929720a4d965ce7b47e2c7b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 0}
   width: 150
   height: 100
   mapSmoothIter: 5
@@ -222,6 +223,7 @@ MonoBehaviour:
   randomSeed: 0
   randomFillPercent: 50
   passageWidth: 3
+  squareSize: 1
 --- !u!114 &6959766377225078044
 MonoBehaviour:
   m_ObjectHideFlags: 0

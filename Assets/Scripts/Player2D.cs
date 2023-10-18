@@ -15,6 +15,11 @@ public class Player2D : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
     }
 
+    public void Spawn(float x, float y)
+    {
+        transform.position = new Vector3(x, y, 0);
+    }
+
     // Update is called once per frame
     void Update()
     {
