@@ -122,6 +122,7 @@ public class MeshGen : MonoBehaviour
         wallMesh.triangles = wallTriangles.ToArray();
         walls.mesh = wallMesh;
 
+        Destroy(walls.GetComponent<MeshCollider>());
         MeshCollider wallColl = walls.gameObject.AddComponent<MeshCollider>();
         wallColl.sharedMesh = walls.mesh;
 

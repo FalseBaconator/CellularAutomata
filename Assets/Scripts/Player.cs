@@ -9,15 +9,18 @@ public class Player : MonoBehaviour
     Vector3 velocity;
     public float speed;
 
+    public MapGen mapGen;
+
     // Start is called before the first frame update
     void Start()
     {
+        mapGen = FindObjectOfType<MapGen>();
         rb = GetComponent<Rigidbody>();
     }
 
     public void Spawn(float x, float z)
     {
-        transform.position = new Vector3(x, -2, z);
+        transform.position = new Vector3(x, -3.5f, z);
     }
 
     // Update is called once per frame
@@ -29,6 +32,11 @@ public class Player : MonoBehaviour
     private void FixedUpdate()
     {
         rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        mapGen.GenerateMap();
     }
 
 }

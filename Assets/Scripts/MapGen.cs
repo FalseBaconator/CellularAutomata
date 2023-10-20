@@ -23,9 +23,16 @@ public class MapGen : MonoBehaviour
 
     public int passageWidth;
 
-    public int squareSize = 1;
+    int squareSize = 1;
 
     int[,] map;
+
+    public Exit exit;
+
+    public int borderSize;
+
+    int playerX;
+    int playerY;
 
 
     private void Start()
@@ -35,15 +42,7 @@ public class MapGen : MonoBehaviour
         GenerateMap();
     }
 
-    private void Update()
-    {
-        if(Input.GetMouseButtonDown(0))
-        {
-            GenerateMap();
-        }
-    }
-
-    private void GenerateMap()
+    public void GenerateMap()
     {
         map = new int[width, height];
         RandomFillMap();
@@ -53,8 +52,7 @@ public class MapGen : MonoBehaviour
         }
 
         ProcessMap();
-
-        int borderSize = 5;
+        
         int[,] borderedMap = new int[width + borderSize * 2, height + borderSize * 2];
 
         for (int i = 0; i < borderedMap.GetLength(0); i++)
@@ -78,19 +76,31 @@ public class MapGen : MonoBehaviour
         int tempX = 0;
         int tempZ = 0;
         System.Random rand = new System.Random();
+        Vector3 toSpawn;
         do
         {
             tempX = rand.Next(width);
             tempZ = rand.Next(height);
-        } while (map[tempX, tempZ] == 1);
+        } while (SurroundingWallCount(tempX, tempZ) > 0);
+        toSpawn = CoordToWorld(new Coord(tempX, tempZ));
         if (meshGen.is2D)
         {
-            player2D.Spawn(-width / 2 + tempX * squareSize + squareSize / 2, -height / 2 + tempZ * squareSize + squareSize / 2);
+            player2D.Spawn(toSpawn.x, toSpawn.z);
         }
         else
         {
-            player.Spawn(-width / 2 + tempX * squareSize + squareSize / 2, -height / 2 + tempZ * squareSize + squareSize / 2);
+            player.Spawn(toSpawn.x, toSpawn.z);
         }
+
+        tempX = 0;
+        tempZ = 0;
+        do
+        {
+            tempX = rand.Next(width);
+            tempZ = rand.Next(height);
+        } while (SurroundingWallCount(tempX, tempZ) > 0 || (Mathf.Abs(tempX - playerX) < 15 && Mathf.Abs(tempZ - playerY) < 15));
+        toSpawn = CoordToWorld(new Coord(tempX, tempZ));
+        exit.Spawn(toSpawn.x, toSpawn.z);
     }
 
     void RandomFillMap()

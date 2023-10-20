@@ -8,10 +8,12 @@ public class Player2D : MonoBehaviour
     Rigidbody2D rb;
     Vector2 velocity;
     public float speed;
+    MapGen mapGen;
 
     // Start is called before the first frame update
     void Start()
     {
+        mapGen = FindObjectOfType<MapGen>();
         rb = GetComponent<Rigidbody2D>();
     }
 
@@ -29,6 +31,11 @@ public class Player2D : MonoBehaviour
     private void FixedUpdate()
     {
         rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        mapGen.GenerateMap();
     }
 
 }
